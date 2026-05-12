@@ -52,8 +52,8 @@ models = [
 params = {
     "latitude": settings.LATITUDE,
     "longitude": settings.LONGITUDE,
-    "start_date": "2026-04-25",
-    "end_date": "2026-05-09",
+    "start_date": "2023-05-12",
+    "end_date": "2026-05-12",
     "hourly": variables,
     "models": models,
 }

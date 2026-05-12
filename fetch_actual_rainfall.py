@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 BASE_URL = "https://cosmos-api.ceh.ac.uk"
-start_date = datetime(2026, 5, 9)
+start_date = datetime(2023, 5, 12)
 query_date_range = date_range_query_string(start_date, None)
 param_names = ["precip"]
 params_string = ",".join(param_names)

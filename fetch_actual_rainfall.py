@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 BASE_URL = "https://cosmos-api.ceh.ac.uk"
-start_date = datetime(2026, 5, 11)
+start_date = datetime(2026, 5, 9)
 query_date_range = date_range_query_string(start_date, None)
 
 url = f"{BASE_URL}/collections/30M/locations/{settings.COSMOS_UK_SITE_CODE}?{query_date_range}"
@@ -45,8 +45,16 @@ site_id = site_data["dct:identifier"]
 time_values = pd.DatetimeIndex(site_data["domain"]["axes"]["t"]["values"])
 param_values = {param_name: param_data["values"] for param_name, param_data in site_data["ranges"].items()}
 
-site_data_df = pd.DataFrame.from_dict(param_values)
-site_data_df['datetime'] = time_values
-site_data_df['site_id'] = site_id
+print(param_values)
 
-print(site_data_df)
+pluvio_readings = param_values["precip"]
+rainE_readings = param_values["precip_raine"]
+tipping_readings = param_values["precip_tipping"]
+
+rain_readings = [
+    {"time": t, "pluvio": p, "rainE": r, "tipping": tp}
+    for t, p, r, tp in zip(time_values, pluvio_readings, rainE_readings, tipping_readings, strict=True)
+]
+
+for row in rain_readings:
+    print(f"{row['time']}\t{row['pluvio']}\t{row['rainE']}\t{row['tipping']}")

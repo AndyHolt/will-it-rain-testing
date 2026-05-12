@@ -88,3 +88,5 @@ hourly_data["wind_direction_10m"] = hourly_wind_direction_10m
 
 hourly_dataframe = pd.DataFrame(data = hourly_data)
 print("\nHourly data\n", hourly_dataframe)
+
+hourly_dataframe.to_csv("forecast.csv", encoding='utf-8')

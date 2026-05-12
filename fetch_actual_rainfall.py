@@ -40,8 +40,6 @@ response_json = response.json()
 
 site_data = response_json["coverages"][0]
 
-site_id = site_data["dct:identifier"]
-
 time_values = pd.DatetimeIndex(site_data["domain"]["axes"]["t"]["values"])
 param_values = {param_name: param_data["values"] for param_name, param_data in site_data["ranges"].items()}
 

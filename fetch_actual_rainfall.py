@@ -1,10 +1,7 @@
+import csv
 from datetime import datetime
-import io
-import json
-import zipfile
 
 import requests
-import pandas as pd
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 def format_datetime(dt: datetime) -> str:
@@ -43,7 +40,7 @@ response_json = response.json()
 
 site_data = response_json["coverages"][0]
 
-time_values = pd.DatetimeIndex(site_data["domain"]["axes"]["t"]["values"])
+time_values = site_data["domain"]["axes"]["t"]["values"]
 param_values = {param_name: param_data["values"] for param_name, param_data in site_data["ranges"].items()}
 
 pluvio_readings = param_values["precip"]
@@ -53,5 +50,7 @@ rain_readings = [
     for t, p in zip(time_values, pluvio_readings, strict=True)
 ]
 
-for row in rain_readings:
-    print(row)
+with open("actual_rainfall.csv", "w", newline="") as f:
+    writer = csv.DictWriter(f, fieldnames=rain_readings[0].keys())
+    writer.writeheader()
+    writer.writerows(rain_readings)

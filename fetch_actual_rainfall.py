@@ -45,16 +45,12 @@ site_id = site_data["dct:identifier"]
 time_values = pd.DatetimeIndex(site_data["domain"]["axes"]["t"]["values"])
 param_values = {param_name: param_data["values"] for param_name, param_data in site_data["ranges"].items()}
 
-print(param_values)
-
 pluvio_readings = param_values["precip"]
-rainE_readings = param_values["precip_raine"]
-tipping_readings = param_values["precip_tipping"]
 
 rain_readings = [
-    {"time": t, "pluvio": p, "rainE": r, "tipping": tp}
-    for t, p, r, tp in zip(time_values, pluvio_readings, rainE_readings, tipping_readings, strict=True)
+    {"time": t, "pluvio": p}
+    for t, p in zip(time_values, pluvio_readings, strict=True)
 ]
 
 for row in rain_readings:
-    print(f"{row['time']}\t{row['pluvio']}\t{row['rainE']}\t{row['tipping']}")
+    print(row)

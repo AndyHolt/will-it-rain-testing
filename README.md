@@ -73,3 +73,45 @@ keeps the threshold low, so it's predicting *all* rain, not just moderate rain.
 
 After applying these thresholds, I've got a 22.1% positive rain rate, which is
 balanced enough for training.
+
+## Model training and selection
+
+Because this is time series forecasting, data needs to be split for
+training/validation temporally, not randomly. Otherwise the test data being
+evaluated will be strongly correlated with the actual test data which surrounds
+it, giving an inflated validation result, and must poorer performance in
+inference. So first 70% of data will be used for training, next 15% for
+validation, and final 15% for testing.
+
+This split has a significant downside: the final 15% used for testing is
+seasonally isolated, covering only a segment of winter/spring. It also will give
+a poor data set if the underlying weather models have been updated, such that
+all training data reflects an older weather model.
+
+### Baseline persistence
+
+Naive baseline for model comparison: if it rained in period (T-4h, T), it will
+also rain in (T, T+4h). If dry in (T-4h, T), it will be dry in (T, T+4h).
+
+Evaluation results:
+
+```
+Evaluated rows: 3946
+Actual positive rate: 27.0%
+Predicted positive rate: 27.0%
+
+Confusion matrix (rows = actual, cols = predicted):
+             pred_dry  pred_rain
+actual_dry       2489        393
+actual_rain       393        671
+
+Classification report:
+              precision    recall  f1-score   support
+
+         dry      0.864     0.864     0.864      2882
+        rain      0.631     0.631     0.631      1064
+
+    accuracy                          0.801      3946
+   macro avg      0.747     0.747     0.747      3946
+weighted avg      0.801     0.801     0.801      3946
+```

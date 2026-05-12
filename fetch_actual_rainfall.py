@@ -32,8 +32,11 @@ settings = Settings()
 BASE_URL = "https://cosmos-api.ceh.ac.uk"
 start_date = datetime(2026, 5, 9)
 query_date_range = date_range_query_string(start_date, None)
+param_names = ["precip"]
+params_string = ",".join(param_names)
+param_constraints = f"parameter-name={params_string}"
 
-url = f"{BASE_URL}/collections/30M/locations/{settings.COSMOS_UK_SITE_CODE}?{query_date_range}"
+url = f"{BASE_URL}/collections/30M/locations/{settings.COSMOS_UK_SITE_CODE}?{query_date_range}&{param_constraints}"
 
 response = requests.get(url)
 response_json = response.json()

@@ -528,6 +528,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "numpy" },
     { name = "openmeteo-requests" },
+    { name = "openmeteo-sdk" },
     { name = "pandas" },
     { name = "pydantic-settings" },
     { name = "requests" },
@@ -539,6 +540,7 @@ dependencies = [
 requires-dist = [
     { name = "numpy", specifier = ">=2.4.4" },
     { name = "openmeteo-requests", specifier = ">=1.7.5" },
+    { name = "openmeteo-sdk", specifier = ">=1.26.0" },
     { name = "pandas", specifier = ">=3.0.2" },
     { name = "pydantic-settings", specifier = ">=2.14.1" },
     { name = "requests", specifier = ">=2.33.1" },

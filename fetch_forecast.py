@@ -1,4 +1,5 @@
 import openmeteo_requests
+from openmeteo_sdk import Model
 import pandas as pd
 import requests_cache
 from retry_requests import retry
@@ -12,6 +13,14 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
+
+
+def model_to_name(code: int):
+    """convert Model enumeration to name"""
+    for name, value in Model.Model.__dict__.items():
+        if value == code:
+            return name
+    return None
 
 
 # Setup API client with cache and retries
@@ -59,7 +68,8 @@ for response in responses:
     print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
 
     model_id = response.Model()
-    print(f"Model ID:: {model_id}")
+    model_name = model_to_name(model_id)
+    print(f"Model: {model_name}")
 
 
     # process hourly data

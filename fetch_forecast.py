@@ -38,55 +38,66 @@ params = {
         "wind_speed_10m",
         "wind_direction_10m",
     ],
+    "models": [
+        "best_match",
+        "ecmwf_ifs",
+        # best_match for specified location is identical to ukmo_uk... except that it also includes preciptation probability  column
+        # "ukmo_uk_deterministic_2km",
+    ],
 }
 responses = openmeteo.weather_api(url, params=params)
 
-# process first location & model
-response = responses[0]
+model_dataframes = {}
 
-lat_direction = "N" if response.Latitude() > 0 else "S"
-long_direction = "E" if response.Longitude() > 0 else "W"
+for response in responses:
 
-print(f"Coordinates: {response.Latitude()}°{lat_direction} {response.Longitude()}°{long_direction}")
-print(f"Elevation: {response.Elevation()} m asl")
-print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+    lat_direction = "N" if response.Latitude() > 0 else "S"
+    long_direction = "E" if response.Longitude() > 0 else "W"
+
+    print(f"Coordinates: {response.Latitude()}°{lat_direction} {response.Longitude()}°{long_direction}")
+    print(f"Elevation: {response.Elevation()} m asl")
+    print(f"Timezone difference to GMT+0: {response.UtcOffsetSeconds()}s")
+
+    model_id = response.Model()
+    print(f"Model ID:: {model_id}")
 
 
-# process hourly data
-hourly = response.Hourly()
+    # process hourly data
+    hourly = response.Hourly()
 
-hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
-hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
-hourly_apparent_temperature = hourly.Variables(2).ValuesAsNumpy()
-hourly_precipitation_probability = hourly.Variables(3).ValuesAsNumpy()
-hourly_precipitation = hourly.Variables(4).ValuesAsNumpy()
-hourly_rain = hourly.Variables(5).ValuesAsNumpy()
-hourly_showers = hourly.Variables(6).ValuesAsNumpy()
-hourly_cloud_cover = hourly.Variables(7).ValuesAsNumpy()
-hourly_wind_speed_10m = hourly.Variables(8).ValuesAsNumpy()
-hourly_wind_direction_10m = hourly.Variables(9).ValuesAsNumpy()
+    hourly_temperature_2m = hourly.Variables(0).ValuesAsNumpy()
+    hourly_relative_humidity_2m = hourly.Variables(1).ValuesAsNumpy()
+    hourly_apparent_temperature = hourly.Variables(2).ValuesAsNumpy()
+    hourly_precipitation_probability = hourly.Variables(3).ValuesAsNumpy()
+    hourly_precipitation = hourly.Variables(4).ValuesAsNumpy()
+    hourly_rain = hourly.Variables(5).ValuesAsNumpy()
+    hourly_showers = hourly.Variables(6).ValuesAsNumpy()
+    hourly_cloud_cover = hourly.Variables(7).ValuesAsNumpy()
+    hourly_wind_speed_10m = hourly.Variables(8).ValuesAsNumpy()
+    hourly_wind_direction_10m = hourly.Variables(9).ValuesAsNumpy()
 
-hourly_data = {
-    "date": pd.date_range(
-        start = pd.to_datetime(hourly.Time(), unit="s", utc=True),
-        end = pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-        freq = pd.Timedelta(seconds=hourly.Interval()),
-        inclusive="left",
-    )
-}
+    hourly_data = {
+        "date": pd.date_range(
+            start = pd.to_datetime(hourly.Time(), unit="s", utc=True),
+            end = pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
+            freq = pd.Timedelta(seconds=hourly.Interval()),
+            inclusive="left",
+        )
+    }
 
-hourly_data["temperature_2m"] = hourly_temperature_2m
-hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
-hourly_data["apparent_temperature"] = hourly_apparent_temperature
-hourly_data["precipitation_probability"] = hourly_precipitation_probability
-hourly_data["precipitation"] = hourly_precipitation
-hourly_data["rain"] = hourly_rain
-hourly_data["showers"] = hourly_showers
-hourly_data["cloud_cover"] = hourly_cloud_cover
-hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
-hourly_data["wind_direction_10m"] = hourly_wind_direction_10m
+    hourly_data["temperature_2m"] = hourly_temperature_2m
+    hourly_data["relative_humidity_2m"] = hourly_relative_humidity_2m
+    hourly_data["apparent_temperature"] = hourly_apparent_temperature
+    hourly_data["precipitation_probability"] = hourly_precipitation_probability
+    hourly_data["precipitation"] = hourly_precipitation
+    hourly_data["rain"] = hourly_rain
+    hourly_data["showers"] = hourly_showers
+    hourly_data["cloud_cover"] = hourly_cloud_cover
+    hourly_data["wind_speed_10m"] = hourly_wind_speed_10m
+    hourly_data["wind_direction_10m"] = hourly_wind_direction_10m
 
-hourly_dataframe = pd.DataFrame(data = hourly_data)
-print("\nHourly data\n", hourly_dataframe)
+    hourly_dataframe = pd.DataFrame(data = hourly_data)
+    print("\nHourly data\n", hourly_dataframe)
 
-hourly_dataframe.to_csv("forecast.csv", encoding='utf-8')
+    model_dataframes[model_id] = hourly_dataframe
+    # hourly_dataframe.to_csv("forecast.csv", encoding='utf-8')

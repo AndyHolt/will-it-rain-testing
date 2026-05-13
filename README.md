@@ -233,7 +233,7 @@ gives enough model validation to use this as a first version.
 ### Model performance progression
 
 | Model                                         | Test F1 (rain) |
-|-----------------------------------------------+----------------|
+|-----------------------------------------------|----------------|
 | Persistence                                   |          0.631 |
 | Forecast: precipitation @ T >= 0.1mm          |          0.693 |
 | Forecast: precipitation_probability @ T >= 50% |          0.700 |

@@ -240,3 +240,5 @@ gives enough model validation to use this as a first version.
 | LightGBM with F1 max threshold                |          0.588 |
 | LightGBM with rank based threshold            |          0.672 |
 | LightGBM + isotonic calibration               |          0.746 |
+
+![Test F1 (rain) across baselines and LightGBM variants](results.png)

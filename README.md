@@ -185,3 +185,26 @@ which include it.
 
 A second ill-effect of the limited data is that the partitioning of
 training/validation/test data is much more strongly seasonal.
+
+There's nothing much we can do about the missing data problem in the short term,
+so we've got to live with the data we've got and keep moving forwards. But we
+can take some measures to mitigate the seasonality of the data. (At this point,
+I'm leaning more heavily on Claude Code to guide improvements, for two reasons.
+Firstly, I'm not an expert in time series forecasting or gradient boosting, and
+I don't need to be because, secondly, we're very much in the exploration and
+prototyping phase, so we can try lots of things quickly and see what works well.
+The goal here is not to have a perfect method and model, but to quickly get to a
+usable model and get it deployed. Model improvement can come later, as I built
+up more familiarity with best practices in gradient boosting and time series
+forecasting.)
+
+The first step in improving on the seasonal mismatch between training (dryer)
+and testing (wetter) data is to use a threshold that matches the positive rate
+on the validation data (how many wet periods) rather than maximising F1 in the
+validation data, since the distributions are not aligned. This improves F1 of
+test data from 0.588 to 0.672: a substantial improvement and brings our trained
+model above continuity baseline. It's not as good as the forecast baseline
+(without `preciptation_probability`), but pretty close. The issue now is that
+the validation dataset in which we're matching wetness percentage doesn't match
+the test dataset: validation is wetter than test. So the next improvement is to
+add isotonic calibration.

@@ -76,12 +76,18 @@ model.fit(
 )
 print(f"Best iteration: {model.best_iteration_}\n")
 
-# Tune classification threshold on the validation set, then apply to test.
+# Pick the threshold so that the model predicts the same positive rate on
+# val as actually occurred in val. This is rank-based (uses ordering, not
+# probability magnitudes), so it's robust to systematic probability drift
+# between train and val/test caused by base-rate differences across splits.
 val_probs = model.predict_proba(X_val)[:, 1]
+val_actual_rate = y_val.mean()
+best_threshold = float(np.quantile(val_probs, 1 - val_actual_rate))
+val_f1 = f1_score(y_val, val_probs >= best_threshold)
+print(f"Val actual positive rate: {val_actual_rate:.1%}")
+print(f"Threshold (matches val rate): {best_threshold:.3f}  (val F1 = {val_f1:.3f})\n")
+
 candidate_thresholds = np.linspace(0.05, 0.95, 91)
-val_f1s = [f1_score(y_val, val_probs >= t) for t in candidate_thresholds]
-best_threshold = candidate_thresholds[int(np.argmax(val_f1s))]
-print(f"Best threshold (max F1 on val): {best_threshold:.2f}  (val F1 = {max(val_f1s):.3f})\n")
 
 test_probs = model.predict_proba(X_test)[:, 1]
 y_pred = test_probs >= best_threshold

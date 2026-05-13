@@ -115,3 +115,56 @@ Classification report:
    macro avg      0.747     0.747     0.747      3946
 weighted avg      0.801     0.801     0.801      3946
 ```
+
+### Baseline forecast
+
+Next baseline: use Open-Meteo's "Best match" forecast. This validates that the
+forecast data provides more signal than noise for predicting rain locally. It
+also gives a more challenging baseline for training models. If there are genuine
+systematic discrepancies between various forecasts and the local weather, a
+model trained across the different forecasts should have better prediction than
+a single forecast.
+
+One major caveat on this baseline is the "Historical Forecasts" data strongly
+favours forecasts 1 hour ahead, and we can't use forecasts for all four hours of
+the window of interest, since those forecasts aren't yet available at the
+beginning of the window. So we're using the metric "will it rain in the next
+hour?" as a proxy for "will it rain in the next four hours?". This will
+systematically under-report.
+
+Two different versions have been run, one using only the predicted
+precipitation, and the other combining predicted precipitation with
+precipitation probability.
+
+Evaluation results:
+
+```
+=== best_match precipitation @ T  >=  0.1mm ===
+Predicted positive rate: 24.4%
+             pred_dry  pred_rain
+actual_dry       2621        261
+actual_rain       361        703
+              precision    recall  f1-score   support
+
+         dry      0.879     0.909     0.894      2882
+        rain      0.729     0.661     0.693      1064
+
+    accuracy                          0.842      3946
+   macro avg      0.804     0.785     0.794      3946
+weighted avg      0.839     0.842     0.840      3946
+
+=== best_match precipitation_probability @ T  >=  50.0% ===
+Predicted positive rate: 27.3%
+             pred_dry  pred_rain
+actual_dry       2554        328
+actual_rain       315        749
+              precision    recall  f1-score   support
+
+         dry      0.890     0.886     0.888      2882
+        rain      0.695     0.704     0.700      1064
+
+    accuracy                          0.837      3946
+   macro avg      0.793     0.795     0.794      3946
+weighted avg      0.838     0.837     0.837      3946
+
+```

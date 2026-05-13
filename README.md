@@ -168,3 +168,20 @@ actual_rain       315        749
 weighted avg      0.838     0.837     0.837      3946
 
 ```
+
+### LightGBM model
+
+Since this is a tabular classification problem, gradient boosting using LightGBM
+is the obvious choice, especially given the relatively small pool of training
+data which favours gradient boosting over a neural net.
+
+The first run of training was disappointing, but had an obvious issue: a much
+smaller training set was used than expected. This was because `NaN` values were
+being dropped, and all data from before June 2025 had `NaN` for
+`precipitation_probability` values: a key feature for training. Including the
+whole training set also gave poor performance, since the training data is
+largely training on rows which lack this key feature, then tested on features
+which include it.
+
+A second ill-effect of the limited data is that the partitioning of
+training/validation/test data is much more strongly seasonal.

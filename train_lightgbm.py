@@ -1,6 +1,7 @@
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 
 TRAIN_FRAC = 0.70
@@ -76,18 +77,24 @@ model.fit(
 )
 print(f"Best iteration: {model.best_iteration_}\n")
 
-# Pick the threshold so that the model predicts the same positive rate on
-# val as actually occurred in val. This is rank-based (uses ordering, not
-# probability magnitudes), so it's robust to systematic probability drift
-# between train and val/test caused by base-rate differences across splits.
-val_probs = model.predict_proba(X_val)[:, 1]
-val_actual_rate = y_val.mean()
-best_threshold = float(np.quantile(val_probs, 1 - val_actual_rate))
-val_f1 = f1_score(y_val, val_probs >= best_threshold)
-print(f"Val actual positive rate: {val_actual_rate:.1%}")
-print(f"Threshold (matches val rate): {best_threshold:.3f}  (val F1 = {val_f1:.3f})\n")
+val_probs_raw = model.predict_proba(X_val)[:, 1]
+test_probs_raw = model.predict_proba(X_test)[:, 1]
 
+# Isotonic calibration: fit a monotonic mapping from raw probabilities to
+# empirical rain frequencies using val, then apply to both val and test.
+# This corrects the systematic magnitude drift caused by the train regime
+# being drier than val/test, so a magnitude threshold becomes meaningful.
+calibrator = IsotonicRegression(out_of_bounds="clip")
+calibrator.fit(val_probs_raw, y_val)
+val_probs = calibrator.transform(val_probs_raw)
+test_probs = calibrator.transform(test_probs_raw)
+
+# With calibrated probabilities, F1-max on val is a sound criterion again.
 candidate_thresholds = np.linspace(0.05, 0.95, 91)
+val_f1s = [f1_score(y_val, val_probs >= t) for t in candidate_thresholds]
+best_threshold = candidate_thresholds[int(np.argmax(val_f1s))]
+print(f"Val actual positive rate: {y_val.mean():.1%}")
+print(f"Threshold (F1-max on calibrated val): {best_threshold:.3f}  (val F1 = {max(val_f1s):.3f})\n")
 
 test_probs = model.predict_proba(X_test)[:, 1]
 y_pred = test_probs >= best_threshold

@@ -132,9 +132,8 @@ beginning of the window. So we're using the metric "will it rain in the next
 hour?" as a proxy for "will it rain in the next four hours?". This will
 systematically under-report.
 
-Two different versions have been run, one using only the predicted
-precipitation, and the other combining predicted precipitation with
-precipitation probability.
+Two different versions have been run, one using the predicted precipitation, and
+the other using precipitation probability.
 
 Evaluation results:
 
@@ -204,7 +203,40 @@ on the validation data (how many wet periods) rather than maximising F1 in the
 validation data, since the distributions are not aligned. This improves F1 of
 test data from 0.588 to 0.672: a substantial improvement and brings our trained
 model above continuity baseline. It's not as good as the forecast baseline
-(without `preciptation_probability`), but pretty close. The issue now is that
+(without `precipitation_probability`), but pretty close. The issue now is that
 the validation dataset in which we're matching wetness percentage doesn't match
 the test dataset: validation is wetter than test. So the next improvement is to
 add isotonic calibration.
+
+After adding isotonic calibration, the results are looking very encouraging:
+```
+=== Test set results ===
+Predicted positive rate: 32.0%  (actual 27.0%)
+             pred_dry  pred_rain
+actual_dry       2486        396
+actual_rain       196        868
+              precision    recall  f1-score   support
+
+         dry      0.927     0.863     0.894      2882
+        rain      0.687     0.816     0.746      1064
+
+    accuracy                          0.850      3946
+   macro avg      0.807     0.839     0.820      3946
+weighted avg      0.862     0.850     0.854      3946
+```
+F-1 score is now well improved over the persistence baseline, and also beating the
+precipitation depth and probability forecast baselines. The overall methodological
+limitations still apply: we're using only the first hour forecast to predict
+rain over the whole 4 hour window. But with the current available data, this
+gives enough model validation to use this as a first version.
+
+### Model performance progression
+
+| Model                                         | Test F1 (rain) |
+|-----------------------------------------------+----------------|
+| Persistence                                   |          0.631 |
+| Forecast: precipitation @ T >= 0.1mm          |          0.693 |
+| Forecast: precipitation_probability @ T >= 50% |          0.700 |
+| LightGBM with F1 max threshold                |          0.588 |
+| LightGBM with rank based threshold            |          0.672 |
+| LightGBM + isotonic calibration               |          0.746 |

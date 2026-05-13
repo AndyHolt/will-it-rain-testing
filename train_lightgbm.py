@@ -1,3 +1,4 @@
+import joblib
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
@@ -115,6 +116,17 @@ print(classification_report(y_test, y_pred, target_names=["dry", "rain"], digits
 oracle_f1s = [(t, f1_score(y_test, test_probs >= t)) for t in candidate_thresholds]
 oracle_best_t, oracle_best_f1 = max(oracle_f1s, key=lambda x: x[1])
 print(f"DIAGNOSTIC: best achievable test F1 (threshold tuned on test): {oracle_best_f1:.3f} at t={oracle_best_t:.2f}\n")
+
+bundle = {
+    "model": model,
+    "calibrator": calibrator,
+    "threshold": best_threshold,
+    "feature_cols": feature_cols,
+    "lag_hours": LAG_HOURS,
+    "sparse_columns": SPARSE_COLUMNS,
+}
+joblib.dump(bundle, "model_bundle.joblib")
+print(f"Saved model bundle to model_bundle.joblib\n")
 
 print("Top 15 feature importances:")
 importance = pd.Series(model.feature_importances_, index=feature_cols).sort_values(ascending=False)
